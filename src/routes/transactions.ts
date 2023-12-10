@@ -17,12 +17,16 @@ export async function transactionsRoutes(app: FastifyInstance) {
     })
 
     const {id} = getTransactionParamsSchema.parse(request.params)
-
     const transaction = await knex('transactions').where('id', id).first()
 
     return {transaction}
-
   })
+
+  app.get('/summary', async ()=> {
+    const summary = await knex('transactions').sum('amount', { as: 'amount'}).first()
+
+    return {summary}
+  })  
 
   app.post('/', async (request, reply) => {
 
@@ -40,8 +44,6 @@ export async function transactionsRoutes(app: FastifyInstance) {
         title,
         amount: type === 'credit' ? amount : amount*-1,
       })
-
-
 
 
     return reply.status(201).send()
