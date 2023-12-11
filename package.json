@@ -11,6 +11,7 @@
     "knex": "node --loader tsx ./node_modules/knex/bin/cli.js",
     "lint": "eslint src --ext .ts --fix",
     "test": "vitest",
+    "knex-prod": "node --import tsx ./node_modules/knex/bin/cli.js",
     "build": "tsup src --out-dir build"
   },
   "keywords": [],
