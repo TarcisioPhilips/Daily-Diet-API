@@ -67,7 +67,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
 
     const {title, amount, type} = createTransactionBodySchema.parse(request.body)
 
-    let sessionId = request.cookies.session_id
+    let sessionId = request.cookies.sessionId
     
     if(!sessionId) {
       sessionId = crypto.randomUUID()
