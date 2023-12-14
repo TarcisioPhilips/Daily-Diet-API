@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify'
 import { knex } from '../database'
 import crypto from 'node:crypto'
 import {z} from 'zod'
-import { checkSessionIdExists } from '../middleware/check-session-id-exists'
 
 export async function userRoutes(app: FastifyInstance) {  
   app.post('/', async (request, reply) => {

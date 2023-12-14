@@ -3,7 +3,6 @@ import { knex } from '../database'
 import crypto from 'node:crypto'
 import {z} from 'zod'
 import { checkSessionIdExists } from '../middleware/check-session-id-exists'
-import { Knex } from 'knex'
 
 export async function mealsRoutes (app: FastifyInstance) {
     app.post('/', 
@@ -91,6 +90,55 @@ export async function mealsRoutes (app: FastifyInstance) {
         return reply.status(200).send({meal})
     })
 
-    
+    app.get('/summary'
+    , 
+    {preHandler: [checkSessionIdExists]}
+    ,
+     async (request, reply) => {
+        const {sessionId} = request.cookies
+
+        const [user] = await knex('users')
+        .select('id')
+        .where('session_id', sessionId)
+
+        const userId = user.id
+
+        const [count] = await knex('meals')
+        .count('id', {
+          as: 'Total de refeições registradas',
+        })
+        .where('user_id', userId)
+
+        const refDieta = await knex('meals')
+            .count('id', { as: 'Total de refeições dentro da dieta' })
+            .where('isOnTheDiet', true)
+            .andWhere('user_id', userId)
+
+        const refForaDieta = await knex('meals')
+            .count('id', { as: 'Total de refeições fora da dieta' })
+            .where('isOnTheDiet', false)
+            .andWhere('user_id', userId)
+
+        const summary = {
+            'Total de refeições registradas': parseInt(
+            JSON.parse(JSON.stringify(count))['Total de refeições registradas'],
+            ),
+
+            'Total de refeições dentro da dieta': parseInt(
+            JSON.parse(JSON.stringify(refDieta))[0][
+                'Total de refeições dentro da dieta'
+            ],
+            ),
+
+            'Total de refeições fora da dieta': parseInt(
+            JSON.parse(JSON.stringify(refForaDieta))[0][
+                'Total de refeições fora da dieta'
+            ],
+            ),
+        }
+
+        return {summary}
+
+    })
 
 }
