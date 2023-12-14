@@ -5,12 +5,41 @@ import {z} from 'zod'
 import { checkSessionIdExists } from '../middleware/check-session-id-exists'
 
 export async function mealsRoutes (app: FastifyInstance) {
-    app.get('/' 
-    ,{
-        preHandler: [checkSessionIdExists]
-    },
+    app.post('/', 
+    {
+        preHandler:[checkSessionIdExists]
+    }, 
+
+
     async(request, reply) => {
-        return checkSessionIdExists
+        const {sessionId} = request.cookies
+        // console.log('sessionId:',sessionId)
+
+        const [user] = await knex('users')
+        .where('session_id', sessionId)
+        .select('id')
+
+        const userId = user.id
+        // console.log('userId:', userId)
+
+        const createUserBodySchema = z.object({
+            name:z.string(),
+            description:z.string(),
+            isOnTheDiet:z.boolean()
+        })
+
+        const {name, description, isOnTheDiet} = createUserBodySchema.parse(request.body)
+
+        await knex('meals').insert({
+            id:crypto.randomUUID(),
+            user_id: userId,
+            name,
+            description,
+            isOnTheDiet
+        }).returning('*')
+
+        return reply.status(201).send()
     }
     )
+
 }
