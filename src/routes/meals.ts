@@ -3,6 +3,7 @@ import { knex } from '../database'
 import crypto from 'node:crypto'
 import {z} from 'zod'
 import { checkSessionIdExists } from '../middleware/check-session-id-exists'
+import { Knex } from 'knex'
 
 export async function mealsRoutes (app: FastifyInstance) {
     app.post('/', 
@@ -47,7 +48,7 @@ export async function mealsRoutes (app: FastifyInstance) {
         preHandler: [checkSessionIdExists]
     }, async (request, reply) => {
         const {sessionId} = request.cookies
-        console.log(sessionId)
+        // console.log(sessionId)
 
         const [user] = await knex('users')
             .select('id')
@@ -61,5 +62,35 @@ export async function mealsRoutes (app: FastifyInstance) {
 
         return reply.status(200).send(meal)
     })
+
+    app.get('/:mealId', 
+    {
+        preHandler: [checkSessionIdExists]
+    },async (request,reply) => {
+        const {sessionId} = request.cookies
+
+        const [user] = await knex('users')
+            .select('id')
+            .where('session_id', sessionId)
+
+        const userId = user.id
+
+        const getMealsParamsSchema = z.object({
+            mealId:z.string().uuid()
+        })
+
+        const {mealId} = getMealsParamsSchema.parse(request.params)
+        
+        const meal = await knex('meals')
+        .select('*')
+        .where({
+            user_id: userId,
+            id: mealId
+        })
+
+        return reply.status(200).send({meal})
+    })
+
+    
 
 }
