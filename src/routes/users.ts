@@ -4,7 +4,45 @@ import crypto from 'node:crypto'
 import {z} from 'zod'
 import { checkSessionIdExists } from '../middleware/check-session-id-exists'
 
+export async function userRoutes(app: FastifyInstance) {  
+  app.post('/', async (request, reply) => {
+    const createUserSchema = z.object({
+      name:z.string(),
+      email:z.string(),
+      adress:z.string(),
+      weight:z.number(),
+      height:z.number()
+    })
 
+    const { name, email, adress, weight, height} = createUserSchema.parse(request.body)
+
+    let sessionId = request.cookies.sessionId
+
+    if(!sessionId) {
+      sessionId = crypto.randomUUID()
+
+      reply.cookie('sessionId', sessionId, {
+        path:'/',
+        maxAge:  1000 *60 *60 * 24 * 7,
+      })
+    }
+
+    await knex('users').insert({
+      id:crypto.randomUUID(),
+      name,
+      email,
+      adress,
+      weight,
+      height,
+      session_id: sessionId,
+    })
+
+    return reply.status(201).send()
+  })
+}
+
+
+/*
 export async function transactionsRoutes(app: FastifyInstance) {  
   app.get('/', 
   {
@@ -92,3 +130,4 @@ export async function transactionsRoutes(app: FastifyInstance) {
   })
   
 }
+*/
