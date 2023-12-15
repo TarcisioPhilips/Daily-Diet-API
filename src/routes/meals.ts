@@ -94,7 +94,7 @@ export async function mealsRoutes (app: FastifyInstance) {
     , 
     {preHandler: [checkSessionIdExists]}
     ,
-     async (request, reply) => {
+     async (request) => {
         const {sessionId} = request.cookies
 
         const [user] = await knex('users')
